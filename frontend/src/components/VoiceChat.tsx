@@ -93,8 +93,9 @@ export const VoiceChat: React.FC = () => {
     setIsTyping(true);
 
     try {
+      const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
       // API integration to Express endpoint `/api/chat/rag`
-      const res = await fetch('http://localhost:5000/api/chat/rag', {
+      const res = await fetch(`${apiBase}/api/chat/rag`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 

@@ -41,6 +41,8 @@ const City3D = dynamic(
   )}
 );
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+
 export default function DashboardPage() {
   const { 
     sosActive, setSosActive, safetyScore, setSafetyScore, 
@@ -60,7 +62,7 @@ export default function DashboardPage() {
   useEffect(() => {
     const pingBackend = async () => {
       try {
-        const res = await fetch('http://localhost:5000/health');
+        const res = await fetch(`${API_BASE}/health`);
         if (res.ok) setBackendStatus('connected');
         else setBackendStatus('offline');
       } catch {
@@ -79,7 +81,7 @@ export default function DashboardPage() {
     const fetchIncidents = async () => {
       try {
         const [lat, lng] = mapCenter;
-        const res = await fetch(`http://localhost:5000/api/safety/incidents/nearby/${lat}/${lng}?radius=3000`);
+        const res = await fetch(`${API_BASE}/api/safety/incidents/nearby/${lat}/${lng}?radius=3000`);
         if (res.ok) {
           const data = await res.json();
           if (data.incidents) {
@@ -127,7 +129,7 @@ export default function DashboardPage() {
 
     try {
       // API call to Express endpoint `/api/routes/calculate`
-      const res = await fetch('http://localhost:5000/api/routes/calculate', {
+      const res = await fetch(`${API_BASE}/api/routes/calculate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -214,7 +216,7 @@ export default function DashboardPage() {
 
     if (targetState) {
       // Connect to Socket or dispatch Express SOS Broadcast
-      await fetch('http://localhost:5000/api/emergency/alert', {
+      await fetch(`${API_BASE}/api/emergency/alert`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

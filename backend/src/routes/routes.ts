@@ -34,7 +34,7 @@ function calculateDistance(coord1: Coordinates, coord2: Coordinates): number {
 }
 
 // Calculate optimal route
-router.post('/calculate', authMiddleware, async (req: AuthRequest, res: Response) => {
+router.post('/calculate', async (req: Request, res: Response) => {
   try {
     const { start, end, routeType = 'safest', preferences } = req.body;
 

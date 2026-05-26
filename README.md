@@ -160,6 +160,20 @@ npm run dev
 
 Open your browser and navigate to the command console directly: **`http://localhost:3000`**
 
+### 4. Deploying to Vercel (Production Cloud)
+
+Because the project utilizes a monorepo-style subfolder architecture (`/frontend` and `/backend`), deploying the Next.js client to Vercel requires two minor configurations to avoid a **404 page** or connection failures:
+
+1. **Configure Root Directory (Avoid 404)**:
+   * During project import on Vercel (or under **Project Settings -> General**), locate the **Root Directory** setting.
+   * Edit this setting and select **`frontend`** as the root of the Next.js build. Vercel will now enter this folder before initiating commands, resolving routing paths correctly.
+   
+2. **Configure Environment Variables**:
+   * Navigate to **Project Settings -> Environment Variables**.
+   * Add a new environment variable: **`NEXT_PUBLIC_API_URL`**.
+   * Set the value to your publicly deployed backend server URL (e.g., `https://saferoute-backend.onrender.com` or your custom server IP).
+   * Vercel will automatically inject this endpoint into client build bundles, pointing dynamic safety estimators to your live API.
+
 ---
 
 ## 📡 Port & Network Address Layout

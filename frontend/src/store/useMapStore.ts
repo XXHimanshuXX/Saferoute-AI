@@ -249,7 +249,8 @@ export const useMapStore = create<MapState>((set) => ({
     }
     
     try {
-      const response = await fetch(`http://localhost:5000/api/safety/incidents/${id}/vote`, {
+      const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+      const response = await fetch(`${apiBase}/api/safety/incidents/${id}/vote`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ fingerprint, voteType })
