@@ -140,10 +140,21 @@ export const LeafletMap: React.FC = () => {
           const map = mapEvent.target;
           map.on('moveend', () => {
             const center = map.getCenter();
-            setMapCenter([center.lat, center.lng]);
+            const currentCenter = useMapStore.getState().mapCenter;
+            const latDiff = Math.abs(center.lat - currentCenter[0]);
+            const lngDiff = Math.abs(center.lng - currentCenter[1]);
+            
+            // Precision threshold check to avoid recursive pan loop (approx 11m grid resolution)
+            if (latDiff > 0.0001 || lngDiff > 0.0001) {
+              setMapCenter([center.lat, center.lng]);
+            }
           });
           map.on('zoomend', () => {
-            setZoom(map.getZoom());
+            const newZoom = map.getZoom();
+            const currentZoom = useMapStore.getState().zoom;
+            if (newZoom !== currentZoom) {
+              setZoom(newZoom);
+            }
           });
         }}
       >
