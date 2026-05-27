@@ -56,6 +56,11 @@ interface MapState {
   // PCR Vehicles Telemetry
   pcrVehicles: PCRVehicle[];
   
+  // Geolocation and Tap Coordinates
+  userLocation: [number, number] | null;
+  startCoords: [number, number] | null;
+  destCoords: [number, number] | null;
+  
   // Actions
   setHoveredId: (id: string | null) => void;
   setSosActive: (active: boolean) => void;
@@ -67,6 +72,9 @@ interface MapState {
   setIncidents: (incidents: Incident[]) => void;
   setConnectivityMode: (mode: 'fiber' | '2g' | 'offline') => void;
   setPCRVehicles: (vehicles: PCRVehicle[]) => void;
+  setUserLocation: (loc: [number, number] | null) => void;
+  setStartCoords: (coords: [number, number] | null) => void;
+  setDestCoords: (coords: [number, number] | null) => void;
   dispatchVehicle: (id: string) => void;
   voteIncident: (id: string, voteType: 'upvote' | 'downvote') => Promise<void>;
 }
@@ -212,6 +220,9 @@ export const useMapStore = create<MapState>((set) => ({
   
   connectivityMode: 'fiber',
   pcrVehicles: initialPcrVehicles,
+  userLocation: null,
+  startCoords: null,
+  destCoords: null,
 
   setHoveredId: (id) => set({ hoveredId: id }),
   setSosActive: (active) => set({ sosActive: active }),
@@ -229,6 +240,9 @@ export const useMapStore = create<MapState>((set) => ({
   
   setConnectivityMode: (mode) => set({ connectivityMode: mode }),
   setPCRVehicles: (vehicles) => set({ pcrVehicles: vehicles }),
+  setUserLocation: (loc) => set({ userLocation: loc }),
+  setStartCoords: (coords) => set({ startCoords: coords }),
+  setDestCoords: (coords) => set({ destCoords: coords }),
   
   dispatchVehicle: (id) => set((state) => ({
     pcrVehicles: state.pcrVehicles.map(v => 

@@ -57,6 +57,7 @@ export default function DashboardPage() {
   const [activeViewport, setActiveViewport] = useState<'2d' | '3d' | 'both'>('both');
   const [backendStatus, setBackendStatus] = useState<'connected' | 'offline'>('offline');
   const [isWizardOpen, setIsWizardOpen] = useState(false);
+  const [isAIChatOpen, setIsAIChatOpen] = useState(false);
 
   // Verify connection to local Express server
   useEffect(() => {
@@ -472,22 +473,52 @@ export default function DashboardPage() {
           </div>
         </main>
 
-        {/* Right Panel / Conversational Interface */}
-        <aside className="w-80 shrink-0 border-l border-slate-800/60 p-5 flex flex-col gap-5 overflow-y-auto bg-obsidian-900/20 z-10">
-          {/* AI Voice Reactive Orb */}
-          <div className="space-y-3">
-            <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest flex items-center gap-2">
-              <Heart className="w-3.5 h-3.5 text-red-400" />
-              Orb Telemetry
-            </label>
-            <AIOrb />
-          </div>
+        {/* Floating Cybernetic AI Orb Assistant Bubble Deck */}
+        <div className="absolute bottom-5 right-5 z-[1000] flex flex-col items-end gap-3 pointer-events-none">
+          {/* Expanded AI Deck Panel */}
+          {isAIChatOpen && (
+            <div className="w-80 h-[480px] rounded-2xl glass-panel border border-slate-800/80 shadow-2xl p-4 flex flex-col gap-3 bg-obsidian-950/95 overflow-hidden animate-slideUp pointer-events-auto">
+              <div className="flex items-center justify-between border-b border-slate-900 pb-2 shrink-0">
+                <h3 className="text-[10px] font-black text-white uppercase tracking-widest flex items-center gap-1.5">
+                  <Compass className="w-3.5 h-3.5 text-emerald-400 animate-spin-slow" />
+                  Tactical AI Co-Navigator
+                </h3>
+                <button 
+                  onClick={() => setIsAIChatOpen(false)}
+                  className="w-5 h-5 rounded-md hover:bg-slate-800 flex items-center justify-center text-xs text-slate-400 hover:text-white transition-colors"
+                >
+                  ✕
+                </button>
+              </div>
 
-          {/* AI Conversational Assistant */}
-          <div className="flex-1 min-h-[300px]">
-            <VoiceChat />
-          </div>
-        </aside>
+              {/* Central AI Orb Visualizer Inside Chat */}
+              <div className="h-28 shrink-0 flex items-center justify-center relative bg-obsidian-900/40 rounded-xl border border-slate-900/60 overflow-hidden">
+                <AIOrb />
+              </div>
+
+              {/* Conversational logs */}
+              <div className="flex-1 min-h-0">
+                <VoiceChat />
+              </div>
+            </div>
+          )}
+
+          {/* Floating Toggle Button Bubble */}
+          <button
+            onClick={() => setIsAIChatOpen(!isAIChatOpen)}
+            className="w-14 h-14 rounded-full bg-gradient-to-r from-emerald-600/90 to-emerald-700/90 hover:from-emerald-500 hover:to-emerald-600 border border-emerald-500/35 shadow-lg hover:shadow-emerald-500/20 active:scale-95 transition-all duration-300 flex items-center justify-center pointer-events-auto relative group"
+            title="Interact with AI Co-Navigator"
+          >
+            {/* Emissive pulse circle underlay */}
+            <div className="absolute inset-0 rounded-full bg-emerald-500/10 animate-ping group-hover:bg-emerald-500/20 transition-all pointer-events-none" />
+            
+            {isAIChatOpen ? (
+              <span className="text-white text-lg font-bold">✕</span>
+            ) : (
+              <span className="text-emerald-300 text-xl font-bold animate-pulse">🤖</span>
+            )}
+          </button>
+        </div>
 
       </div>
 

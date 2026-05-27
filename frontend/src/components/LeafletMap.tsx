@@ -1,9 +1,9 @@
 'use client';
 
 import React, { useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
-import { useMapStore } from '@/store/useMapStore';
+import { useMapStore, Incident, RouteData } from '@/store/useMapStore';
 import 'leaflet/dist/leaflet.css';
 
 // Fix for default Leaflet icon paths
@@ -30,7 +30,7 @@ const MapStateSynchronizer: React.FC = () => {
 };
 
 export const LeafletMap: React.FC = () => {
-  // Distance helper for 2G bandwidth cockpit constraints
+  // Distance helper in meters
   const getDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
     const R = 6371000; // meters
     const d1 = (lat1 * Math.PI) / 180;
@@ -47,15 +47,146 @@ export const LeafletMap: React.FC = () => {
   const { 
     incidents, hoveredId, setHoveredId, currentRoute, 
     mapCenter, zoom, setMapCenter, setZoom, 
-    connectivityMode, voteIncident 
+    connectivityMode, voteIncident,
+    userLocation, setUserLocation,
+    startCoords, setStartCoords,
+    destCoords, setDestCoords,
+    setCurrentRoute
   } = useMapStore();
 
   useEffect(() => {
     fixLeafletIcon();
   }, []);
 
+  // HTML5 Browser Geolocation API Setup
+  useEffect(() => {
+    if (typeof window === 'undefined' || !navigator.geolocation) return;
+    
+    console.log('📡 Starting real-time HTML5 Geolocation watch...');
+    const watchId = navigator.geolocation.watchPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        console.log(`📍 Live coordinate telemetry updated: [${latitude}, ${longitude}]`);
+        setUserLocation([latitude, longitude]);
+      },
+      (error) => {
+        console.warn('⚠️ Geolocation access denied or unavailable:', error.message);
+      },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+    );
+    
+    return () => navigator.geolocation.clearWatch(watchId);
+  }, [setUserLocation]);
+
+  const recenterOnUser = () => {
+    if (userLocation) {
+      setMapCenter(userLocation);
+      setZoom(16);
+    } else {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          setUserLocation([latitude, longitude]);
+          setMapCenter([latitude, longitude]);
+          setZoom(16);
+        },
+        (err) => alert('Geolocation access not authorized. Please check your browser permission settings.')
+      );
+    }
+  };
+
+  // Click-to-Route triggers
+  const calculateCoordinatesRoute = async (start: [number, number], end: [number, number]) => {
+    const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+    console.log(`🚀 Planning path between click points: Start [${start}], End [${end}]`);
+
+    try {
+      const res = await fetch(`${apiBase}/api/routes/calculate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          start: {
+            address: `Click Start [${start[0].toFixed(4)}, ${start[1].toFixed(4)}]`,
+            coordinates: [start[1], start[0]] // [lng, lat]
+          },
+          end: {
+            address: `Click Destination [${end[0].toFixed(4)}, ${end[1].toFixed(4)}]`,
+            coordinates: [end[1], end[0]] // [lng, lat]
+          },
+          routeType: 'safest'
+        })
+      }).catch(() => null);
+
+      if (res && res.ok) {
+        const data = await res.json();
+        const routesList = data.routes || [];
+        const recommendedRoute = data.recommended || routesList[0];
+        
+        const routeData: RouteData = {
+          coordinates: recommendedRoute?.coordinates || [
+            { lat: start[0], lng: start[1] },
+            { lat: (start[0] + end[0]) / 2, lng: (start[1] + end[1]) / 2 },
+            { lat: end[0], lng: end[1] }
+          ],
+          segments: recommendedRoute?.segments || [
+            { color: 'emerald', startIndex: 0, endIndex: 2 }
+          ],
+          duration: recommendedRoute?.routeData?.estimatedTime || 15,
+          distance: recommendedRoute?.routeData?.totalDistance || (getDistance(start[0], start[1], end[0], end[1]) / 1000),
+          safetyScore: Math.round(recommendedRoute?.routeData?.safetyScore || 90)
+        };
+        setCurrentRoute(routeData);
+      } else {
+        // Fallback procedural route between the two tapped points
+        const distKm = getDistance(start[0], start[1], end[0], end[1]) / 1000;
+        const routeData: RouteData = {
+          coordinates: [
+            { lat: start[0], lng: start[1] },
+            { lat: start[0] + (end[0] - start[0]) * 0.3 + 0.0005, lng: start[1] + (end[1] - start[1]) * 0.3 - 0.0005 },
+            { lat: start[0] + (end[0] - start[0]) * 0.7 - 0.0005, lng: start[1] + (end[1] - start[1]) * 0.7 + 0.0005 },
+            { lat: end[0], lng: end[1] }
+          ],
+          segments: [
+            { color: 'emerald', startIndex: 0, endIndex: 1 },
+            { color: 'orange', startIndex: 1, endIndex: 2 },
+            { color: 'emerald', startIndex: 2, endIndex: 3 }
+          ],
+          duration: Math.max(1, Math.round(distKm * 6)),
+          distance: Math.round(distKm * 10) / 10,
+          safetyScore: 92
+        };
+        setCurrentRoute(routeData);
+      }
+    } catch (err) {
+      console.error('Map click route calculation error:', err);
+    }
+  };
+
+  // Component to register Leaflet click handlers
+  const MapEventsHandler = () => {
+    useMapEvents({
+      click: async (e) => {
+        const { lat, lng } = e.latlng;
+        const currentStart = useMapStore.getState().startCoords;
+        const currentDest = useMapStore.getState().destCoords;
+        
+        if (!currentStart) {
+          setStartCoords([lat, lng]);
+        } else if (!currentDest) {
+          setDestCoords([lat, lng]);
+          await calculateCoordinatesRoute(currentStart, [lat, lng]);
+        } else {
+          setStartCoords([lat, lng]);
+          setDestCoords(null);
+          setCurrentRoute(null);
+        }
+      }
+    });
+    return null;
+  };
+
   // Custom Neon HTML Markers using L.divIcon scaled by trustScore
-  const createDivIcon = (type: 'hazard' | 'safezone' | 'sos', isHovered: boolean, trustScore = 1.0) => {
+  const createDivIcon = (type: 'hazard' | 'safezone' | 'sos' | 'user_location', isHovered: boolean, trustScore = 1.0) => {
     let colorClass = 'bg-safety-emerald border-emerald-400 shadow-[0_0_12px_#10b981]';
     let ringClass = 'bg-safety-emerald/30 animate-ping-slow';
     
@@ -75,6 +206,11 @@ export const LeafletMap: React.FC = () => {
       colorClass = 'bg-safety-crimson border-red-400 shadow-[0_0_16px_#ef4444]';
       ringClass = 'bg-safety-crimson/50 animate-ping';
       size = `width: ${sizeVal * 1.2}px; height: ${sizeVal * 1.2}px;`;
+    } else if (type === 'user_location') {
+      colorClass = 'bg-blue-500 border-blue-400 shadow-[0_0_15px_#3b82f6]';
+      ringClass = 'bg-blue-500/30 animate-ping';
+      size = `width: 14px; height: 14px;`;
+      pulseSize = `width: 28px; height: 28px; margin-left: -14px; margin-top: -14px;`;
     }
 
     return L.divIcon({
@@ -123,11 +259,42 @@ export const LeafletMap: React.FC = () => {
           <span className="w-3 h-3 rounded-full bg-safety-crimson inline-block shadow-[0_0_8px_#ef4444]" />
           <span>SOS Distress Beacon Activated</span>
         </div>
+        <div className="flex items-center gap-2">
+          <span className="w-3 h-3 rounded-full bg-blue-500 inline-block shadow-[0_0_8px_#3b82f6]" />
+          <span>You Are Here (Live Location)</span>
+        </div>
         {connectivityMode === '2g' && (
           <div className="border-t border-dashed border-orange-500/30 pt-2 mt-1 text-[10px] text-orange-400 flex items-center gap-1 font-bold uppercase">
             <span className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-ping" />
             2G Mode: 500m Geofencing Active
           </div>
+        )}
+      </div>
+
+      {/* GPS Recenter Action controls overlay */}
+      <div className="absolute bottom-4 left-4 z-[1000] flex gap-2">
+        <button
+          onClick={recenterOnUser}
+          className="p-3 rounded-xl bg-slate-950/85 hover:bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white transition-all duration-200 active:scale-95 shadow-lg flex items-center justify-center gap-1.5 font-bold uppercase text-[10px] tracking-wider"
+          title="Tactical Recenter on Live Location"
+        >
+          <span>🎯</span>
+          Recenter GPS
+        </button>
+
+        {(startCoords || destCoords) && (
+          <button
+            onClick={() => {
+              setStartCoords(null);
+              setDestCoords(null);
+              setCurrentRoute(null);
+            }}
+            className="p-3 rounded-xl bg-slate-950/85 hover:bg-slate-900 border border-slate-800 hover:border-red-500/40 text-slate-400 hover:text-red-400 transition-all duration-200 active:scale-95 shadow-lg flex items-center justify-center gap-1.5 font-bold uppercase text-[10px] tracking-wider"
+            title="Clear Pinned Locations"
+          >
+            <span>🗑️</span>
+            Clear Pins
+          </button>
         )}
       </div>
 
@@ -169,6 +336,62 @@ export const LeafletMap: React.FC = () => {
         {/* Sync zoom and centers */}
         <MapStateSynchronizer />
 
+        {/* Dynamic Clicks Event Handler */}
+        <MapEventsHandler />
+
+        {/* Live User GPS Marker */}
+        {userLocation && (
+          <Marker 
+            position={userLocation}
+            icon={createDivIcon('user_location', true)}
+          >
+            <Popup>
+              <div className="text-center font-bold text-xs uppercase p-1 text-slate-200">
+                You Are Here
+                <div className="text-[9px] text-slate-400 font-medium normal-case pt-0.5">
+                  Lat: {userLocation[0].toFixed(5)}, Lng: {userLocation[1].toFixed(5)}
+                </div>
+              </div>
+            </Popup>
+          </Marker>
+        )}
+
+        {/* Start Click coordinate pin */}
+        {startCoords && (
+          <Marker 
+            position={startCoords}
+            icon={L.divIcon({
+              className: 'custom-neon-marker',
+              html: `
+                <div class="relative flex items-center justify-center" style="transform: translate(-50%, -50%);">
+                  <div class="absolute bg-emerald-500/35 animate-ping-slow rounded-full" style="width: 24px; height: 24px; margin-left: -12px; margin-top: -12px;"></div>
+                  <div class="bg-emerald-500 border-2 border-slate-900 rounded-full shadow-[0_0_12px_#10b981]" style="width: 16px; height: 16px;"></div>
+                  <div class="absolute -top-7 text-[9px] font-black uppercase text-emerald-400 bg-slate-950/90 px-1.5 py-0.5 border border-emerald-500/35 rounded whitespace-nowrap shadow-md">START</div>
+                </div>
+              `,
+              iconSize: [24, 24]
+            })}
+          />
+        )}
+
+        {/* Destination Click coordinate pin */}
+        {destCoords && (
+          <Marker 
+            position={destCoords}
+            icon={L.divIcon({
+              className: 'custom-neon-marker',
+              html: `
+                <div class="relative flex items-center justify-center" style="transform: translate(-50%, -50%);">
+                  <div class="absolute bg-orange-500/35 animate-ping-slow rounded-full" style="width: 24px; height: 24px; margin-left: -12px; margin-top: -12px;"></div>
+                  <div class="bg-orange-500 border-2 border-slate-900 rounded-full shadow-[0_0_12px_#f97316]" style="width: 16px; height: 16px;"></div>
+                  <div class="absolute -top-7 text-[9px] font-black uppercase text-orange-400 bg-slate-950/90 px-1.5 py-0.5 border border-orange-500/35 rounded whitespace-nowrap shadow-md">DEST</div>
+                </div>
+              `,
+              iconSize: [24, 24]
+            })}
+          />
+        )}
+
         {/* Pulsing Dash Animating Path */}
         {polylineCoords.length > 0 && (
           <>
@@ -185,11 +408,8 @@ export const LeafletMap: React.FC = () => {
             {/* Foreground animated dashed path */}
             <Polyline
               positions={polylineCoords}
-              eventHandlers={{
-                mouseover: () => {},
-              }}
               pathOptions={{
-                color: '#10b981', // green for safe route
+                color: currentRoute?.segments[0]?.color === 'crimson' ? '#ef4444' : currentRoute?.segments[0]?.color === 'orange' ? '#f97316' : '#10b981', 
                 weight: 4,
                 opacity: 0.85,
                 lineCap: 'round',
@@ -240,7 +460,7 @@ export const LeafletMap: React.FC = () => {
                   {/* Peer Voting UI Controls */}
                   <div className="flex items-center justify-between border-t border-slate-800/80 pt-2 pb-1 mt-1 text-[11px]">
                     <div className="flex items-center gap-1.5">
-                      <span className="text-[10px] text-slate-500 uppercase font-semibold">Trust Score:</span>
+                      <span className="text-[10px] text-slate-500 uppercase font-semibold">Trust:</span>
                       <span className={`font-bold ${
                         (incident.trustScore || 1.0) >= 1.5 
                           ? 'text-emerald-400 glow-emerald' 
