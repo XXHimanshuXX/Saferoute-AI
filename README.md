@@ -1,5 +1,5 @@
-# SafeRoute AI — Sovereign Tactical Safety Command Center & Navigation Platform
-## The Authoritative Developer Textbook & Hackathon Deployment Manual (v1.0)
+# SafeRoute AI — Sovereign Tactical Safety Command Center & Navigation Platform (v2.0)
+## The Authoritative Developer Textbook & Hackathon Deployment Manual (v2.0 Upgrades)
 **Forged with ❤️ by Harsh + AI Senior Architects • May 2026**
 
 ---
@@ -10,33 +10,42 @@ In low-resource environments and high-density urban areas across India, public s
 
 SafeRoute AI is a **Sovereign, low-bandwidth resilient tactical navigation platform and safety command center**. Engineered explicitly to run in low-resource environments (e.g., 2G/3G mobile networks), it combines true server-side mathematical safety scoring with real-time geospatial socket broadcasting, localized Retrieval-Augmented Generation (RAG) using Google Gemini 1.5 Flash, and a stunning 2D/3D dual-viewport visual interface.
 
-### The System Architecture Flow:
+### SafeRoute AI v2.0 Advanced Upgrades:
+The platform has evolved. With v2.0, we have broken standard layout limits and implemented high-fidelity geolocation and georeferenced maps:
+1. **Interactive HTML5 Geolocation Hooks:** Leverages active geolocation to watch real-time coordinates, projecting a pulsing GPS dot on Leaflet and enabling a neomorphic "Recenter GPS" navigation flow.
+2. **Tactical Click-to-Route Planning:** Tapping directly on the dark-matter tile layers dynamically sets start and destination pins, immediately triggering safe-path routing calculations.
+3. **Hover AI Co-Navigator Bubble:** The clunky static sidebar has been completely deleted. In its place sits a floating glassmorphic Action Bubble in the bottom-right corner. It slides open to reveal a voice-reactive cybernetic orb and a conversational Hinglish safety dashboard.
+4. **Georeferenced 3D City View:** We upgraded our procedural Three.js WebGL canvas to calculate coordinate offsets relative to the active `mapCenter` coordinates dynamically. The 3D grid now dynamically translates real latitude/longitude values to coordinate vectors anywhere on Earth.
+5. **Unlocked Public Route Scoring:** We freed our custom `/api/routes/calculate` endpoint from the restrictive JWT authentication gate. Anonymous public users can now query safety routes dynamically in critical emergencies.
+
+### The System Architecture Flow (v2.0):
 
 ```
-               ┌────────────────────────────────────────────────────────┐
-               │              Next.js 14 Command Dashboard              │
-               │   ┌────────────────────────┐  ┌────────────────────┐   │
-               │   │    2D Leaflet.js       │  │  React Three Fiber │   │
-               │   │    CartoDB Tiles       │  │  3D WebGL Matrix   │   │
-               │   └───────────┬────────────┘  └─────────▲──────────┘   │
-               └───────────────│─────────────────────────│──────────────┘
-                               │ Zustand State Sync      │ Glowing Beacons
-                               ▼                         │ Coordinates
-               ┌─────────────────────────────────────────┴──────────────┐
-               │             EXPRESS TS BACKEND SERVER                  │
-               │  [Socket.io Mesh] [Mongoose Geohash] [Zod Sanitizer]   │
-               └───────────────┬─────────────────────────▲──────────────┘
-                               │ Spatial Query           │ Empathetic Hinglish
-                               │ $nearSphere (1km)       │ Context Response
-                               ▼                         │
-               ┌───────────────────────┐       ┌─────────┴──────────────┐
-               │   MongoDB Atlas       │       │  GOOGLE GEMINI 1.5     │
-               │   2dsphere Indices    │       │  FLASH CO-NAVIGATOR    │
-               └───────────────────────┘       └────────────────────────┘
+       ┌────────────────────────────────────────────────────────┐
+       │             Next.js 14 Sovereign Command Deck          │
+       │  ┌────────────────────────┐  ┌──────────────────────┐  │
+       │  │  2D Leaflet Geolocation│  │  React Three Fiber   │  │
+       │  │  (GPS Watch & Clicks)  │  │  (Dynamic offsets)   │  │
+       │  └───────────┬────────────┘  └──────────▲───────────┘  │
+       └──────────────│──────────────────────────│──────────────┘
+                      │ Zustand State Sync       │ Glowing Beacons
+                      │ (Coords, pins, center)   │ Coordinates
+                      ▼                          │
+       ┌─────────────────────────────────────────┴──────────────┐
+       │             EXPRESS TS BACKEND SERVER                  │
+       │  [Socket.io Mesh] [Mongoose Geohash] [Zod Sanitizer]   │
+       └──────────────┬──────────────────────────▲──────────────┘
+                      │ Spatial Query            │ Empathetic Hinglish
+                      │ $nearSphere (1km)        │ Context Response
+                      ▼                          │
+       ┌───────────────────────┐        ┌────────┴──────────────┐
+       │    MongoDB Atlas      │        │  GOOGLE GEMINI 1.5    │
+       │  2dsphere Indices     │        │  FLASH CO-NAVIGATOR   │
+       └───────────────────────┘        └───────────────────────┘
 ```
 
 The platform operates across three tightly integrated boundaries:
-1. **The Tactical Command Deck (Next.js 14 Client):** A glassmorphic, visual command interface that displays 2D Leaflet maps alongside a stylized 3D procedural WebGL city matrix. It uses a centralized Zustand store to synchronize user hovers and active safety beacons in real-time.
+1. **The Tactical Command Deck (Next.js 14 Client):** A glassmorphic, visual command interface that displays 2D Leaflet maps alongside a stylized 3D procedural WebGL city matrix. It uses a centralized Zustand store to synchronize user hovers, custom route clicks, active GPS locations, and active safety beacons in real-time.
 2. **The Event-Driven Dispatcher (Express TS Backend):** A highly optimized Node.js server that runs geospatial spatial queries using MongoDB `$nearSphere` indices and routes instant SOS broadcasts through real-time Socket.io geohash room clusters.
 3. **The Localized RAG Co-Navigator (Gemini 1.5 Flash):** An empathetic, localized artificial intelligence engine that parses spatial database incident records, calculates distance weights, and speaks conversational "Hinglish" to guide distressed users away from danger zones.
 
@@ -188,18 +197,19 @@ SafeRoute AI routes live socket frames and REST payloads across strict network b
 | **`grid-{lat}-{lng}`** | Room | Socket Room Grid | Dynamic room groupings named after rounded coordinates (2-decimal grid precision, ~1.1km wide). |
 | **`user-{userId}`** | Room | Socket Chat Channel | Dedicated, secure chat socket channel to stream AI responses to active logged-in users. |
 | **`1.0 + (U * 0.2) - (D * 0.3)`** | Logic | Trust Score Engine | Server-side formula mapping community feedback directly to incident reliability weightings. |
+| **`POST /api/routes/calculate`**| REST | Unlocked Routing | Public safety routing calculator. Free of JWT auth gates, enabling instant anonymous emergency navigation. |
 
 ---
 
-## 📘 PART III: The Sovereign Safety Chronicles (Phases 1-7)
+## 📘 PART III: The Sovereign Safety Chronicles (Phases 1-8)
 ### A Textbook Breakdown, Conceptual Deep Dive, and War Stories
 
-This section acts as a comprehensive, textbook-style guide to the first 7 core implementation phases of SafeRoute AI, detailing the mathematical formulations, technical blueprints, and engineering decisions behind the platform.
+This section acts as a comprehensive, textbook-style guide to the core implementation phases of SafeRoute AI, detailing the mathematical formulations, technical blueprints, and engineering decisions behind the platform.
 
 ---
 
-### 🚀 Phase 1: True Safety Scoring Formulation
-*   **The Concept:** A safety routing engine must mathematically calculate risk by combining multiple spatial variables (density, proximity, severity, age of reports, and real-time streetlighting).
+### 🚀 Phase 1: True Safety Scoring Formulation (Unlocked Public Endpoint)
+*   **The Concept:** A safety routing engine must mathematically calculate risk by combining multiple spatial variables (density, proximity, severity, age of reports, and real-time streetlighting). To serve users in immediate distress, the calculation must be universally accessible without enforcing user logins.
 *   **How We Built It:**
     *   **The Core Math:** We engineered an inverse distance decay function integrated with a time-decay penalty to evaluate route hazards. When a route segment is calculated, we query all incident coordinates within a 1km bounding sphere and apply this scoring formula:
         $$safetyScore = 100 - \sum \left[ severity_i \times timeDecay_i \times distanceWeight_i \times lightPenalty \right]$$
@@ -208,6 +218,7 @@ This section acts as a comprehensive, textbook-style guide to the first 7 core i
     *   **Proximity Weighting ($distanceWeight_i$):** Hazards closer to the route segment deduct significantly more points than distant markers using an inverse rational function:
         $$distanceWeight = \frac{1}{1 + \frac{distanceMeters}{30}}$$
     *   **Night-Low Lighting Penalty ($lightPenalty$):** If the safety check occurs between 6:00 PM and 6:00 AM, and the street segment streetlight density falls below a critical threshold ($< 0.3$), we apply a $1.5\times$ risk multiplier.
+    *   **Public Access Protocol:** To remove latency and security barriers during active crises, we unlocked the `/api/routes/calculate` POST endpoint. By bypassing the `authMiddleware` gate, anonymous clients can dynamically request safe routes.
 
 ---
 
@@ -230,6 +241,10 @@ This section acts as a comprehensive, textbook-style guide to the first 7 core i
 *   **The Concept:** A premium command center must link two separate rendering domains: a flat 2D geospatial Leaflet map and a stylized 3D cybernetic WebGL city mesh. Hovering or interacting with a street on one map must immediately update the corresponding element on the other.
 *   **How We Built It:**
     *   **The Zustand Bridge:** We created a centralized, atomic state store in `frontend/src/store/useMapStore.ts`. This store houses the active hovered coordinate index, selected routes, and glowing safety gauge statistics.
+    *   **Tactical Coordinate Extensions:** In v2.0, we expanded our store state to include:
+        *   `userLocation`: Array storing active browser GPS coordinates.
+        *   `startCoords` & `destCoords`: Pins populated via interactive 2D map clicks.
+        *   `mapCenter` & `zoom`: Synchronized viewport values ensuring both views align.
     *   **R3F Extrusion Pipeline:** The 3D view parses building block polygons from procedural geometries. In the 3D Canvas component (`City3D.tsx`), we write frame updates using the `useFrame` hook from React Three Fiber.
     *   **The Hover Sync Loop:** When a user hovers over a 2D Leaflet path, Zustand writes `activeSegmentId`. The 3D viewport listens to changes in this atomic pointer and dynamically scales, brightens, and vibrates a glowing mesh beacon over the target street.
 
@@ -245,6 +260,7 @@ This section acts as a comprehensive, textbook-style guide to the first 7 core i
         // Output: "1. [Type: THEFT] Severity: 4/5, Address: Block C Street, Distance: 340m."
         ```
     *   **Multilingual Hinglish System Instructions:** We prompt Gemini 1.5 Flash to act as a protective localized co-navigator, instructing it to speak in conversational Hinglish/Hindi to explain risks naturally (e.g., *"Bhaiya, Block C ki taraf mat jao, wahan 300m door active theft incident report hua hai"*).
+    *   **The Floating Chat Bubble Interface:** In v2.0, the sidebar interface was scrapped. The chat dashboard is now managed by an absolute-positioned floating action bubble in the bottom-right corner of the dashboard screen. Powered by Tailwind transitions, clicking this bubble slides open a glassmorphic command deck displaying our reactive 3D AI Orb and high-fidelity text history.
 
 ---
 
@@ -273,7 +289,7 @@ This section acts as a comprehensive, textbook-style guide to the first 7 core i
 
 ---
 
-### 🌐 Phase 7:Twilio 2G SMS SOS Fallback Protocol
+### 🌐 Phase 7: Twilio 2G SMS SOS Fallback Protocol
 *   **The Concept:** When a user enters an active distress state (SOS) in a rural or urban dead-zone with no active cellular data (only basic voice/SMS signals), the application must fallback to transmitting distress coordinates via SMS to emergency contacts.
 *   **How We Built It:**
     *   **Base64 Coordinate Compression:** Standard text envelopes carry a 160-character limit. We compress latitude, longitude, and active safety states into a dense, URL-safe base64 binary block:
@@ -281,6 +297,25 @@ This section acts as a comprehensive, textbook-style guide to the first 7 core i
         // Converts [12.9716, 77.5946] -> "TDFD_Mjc2"
         ```
     *   **Twilio SMS Brokerage:** When the server receives this compressed block via our Twilio dispatch webhook, it decompresses the coordinates, formats a clean, clickable Google Maps emergency link, and sends the distress SMS alerts directly to the user's registered guardians.
+
+---
+
+### 🗺️ Phase 8: Georeferenced 3D City View & Live Geolocation (New in v2.0)
+*   **The Concept:** A flat map does not capture real architectural threats. Conversely, a stylized 3D city is useless if it is disconnected from actual, real-world coordinate layers. The 3D map must overlay real coordinates dynamically relative to where the 2D viewport is active.
+*   **How We Built It:**
+    *   **Dynamic Georeferenced Coordinates Translates:** The Three.js/R3F viewport now listens directly to the active Leaflet `mapCenter` in Zustand. We translate global coordinates (latitude and longitude) to local, 3D WebGL relative space vectors using high-accuracy mercator scaling variables:
+        ```typescript
+        const latScale = 4000;
+        const lngScale = 4000;
+
+        const get3DCoords = (lat: number, lng: number, centerLat: number, centerLng: number) => {
+          const x = (lng - centerLng) * lngScale;
+          const z = -(lat - centerLat) * latScale; // Invert latitude to align with WebGL z-axis
+          return [x, 0.4, z] as [number, number, number];
+        };
+        ```
+    *   **Dynamic Render Layers:** Because coordinate translations are centered dynamically, glowing threat beacons, pulsing safezone cylinders, active PCR vans, and the neon routing polylines render precisely in 3D relative to the active map viewport.
+    *   **Continuous Geolocation Watching:** Using the HTML5 Browser Geolocation API (`navigator.geolocation.watchPosition`), the client continuously tracks the user's location, establishing high accuracy (`enableHighAccuracy: true`) and projecting a glowing GPS beacon onto the map coordinates.
 
 ---
 
@@ -328,6 +363,30 @@ This section acts as a comprehensive, textbook-style guide to the first 7 core i
       renderer.dispose();
     };
     ```
+
+---
+
+### 🔄 Battlefield Report #4: The Maximum Update Depth State Loop Trap (v2.0 Fix)
+*   **The Anomaly:** During testing of the georeferenced maps, the browser page would freeze and crash, throwing the classic React warning: `Unhandled Runtime Error - Error: Maximum update depth exceeded. This can happen when a component repeatedly calls setState...`
+*   **The Root Cause:** We set up double-viewport synchronization. Leaflet maps trigger a `moveend` listener when the map finishes panning or moving, which updates Zustand's `mapCenter` state to keep the 3D WebGL city sync'd. However, updating `mapCenter` in Zustand triggered a re-render in the main map parent component, which forced Leaflet to pan back to the newly set state center. This in turn fired `moveend` again, forming a continuous, recursive state loop that immediately exhausted the call stack:
+    ```
+    Leaflet "moveend" Event -> setMapCenter() -> Parent Re-render -> Leaflet Pan -> Leaflet "moveend" Event -> [Infinite Loop]
+    ```
+*   **The Resolution:** We engineered a **precision threshold delta gate** inside our Leaflet `moveend` listener in `LeafletMap.tsx`. Instead of blindly updating the store on every movement tick, the event handler calculates the absolute difference between the new leaflet center coordinates and the current Zustand store values:
+    ```typescript
+    map.on('moveend', () => {
+      const center = map.getCenter();
+      const currentCenter = useMapStore.getState().mapCenter;
+      const latDiff = Math.abs(center.lat - currentCenter[0]);
+      const lngDiff = Math.abs(center.lng - currentCenter[1]);
+      
+      // Precision threshold check to avoid recursive pan loop (approx 11m grid resolution)
+      if (latDiff > 0.0001 || lngDiff > 0.0001) {
+        setMapCenter([center.lat, center.lng]);
+      }
+    });
+    ```
+    This delta threshold (approximately $0.0001$ degrees, or an 11-meter physical distance) successfully blocks negligible coordinate micro-shimmers, immediately breaking the recursive feedback loop and guaranteeing rock-solid compilation and fluid rendering.
 
 ---
 
